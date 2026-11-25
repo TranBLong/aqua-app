@@ -112,6 +112,14 @@ export default function PondDetail() {
           <Text style={styles.actionText}>⚙️ Ngưỡng</Text>
         </TouchableOpacity>
       </View>
+      <View style={[styles.actionRow, { marginTop: 8 }]}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => router.push({ pathname: '/schedules/[id]', params: { id, name } })}
+        >
+          <Text style={styles.actionText}>📅 Lịch cho ăn</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Số liệu realtime */}
       <View style={styles.grid}>

@@ -43,6 +43,7 @@ function Gate() {
         <Stack.Screen name="pond/[id]" options={{ title: 'Chi tiết ao' }} />
         <Stack.Screen name="alerts/[id]" options={{ title: 'Cảnh báo' }} />
         <Stack.Screen name="thresholds/[id]" options={{ title: 'Ngưỡng cảnh báo' }} />
+        <Stack.Screen name="schedules/[id]" options={{ title: 'Lịch cho ăn' }} />
       </Stack>
       {/* Splash phủ lên trong lúc Firebase đang khôi phục phiên đăng nhập */}
       {loading && (
