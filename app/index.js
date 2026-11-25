@@ -4,7 +4,7 @@ import {
   Text, TouchableOpacity, View,
 } from 'react-native';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, query, orderByChild, limitToLast } from 'firebase/database';
 import { db } from '../src/firebase';
 import { api } from '../src/api';
 import { useAuth } from '../src/AuthContext';
@@ -12,10 +12,24 @@ import { useAuth } from '../src/AuthContext';
 // Một thẻ ao: đăng ký lắng nghe realtime pondsLatest/{id}
 function PondCard({ pond, onPress }) {
   const [latest, setLatest] = useState(pond.latest || null);
+  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
-    const unsub = onValue(ref(db, `pondsLatest/${pond.id}`), (snap) => setLatest(snap.val()));
-    return unsub;
+    const unsubLatest = onValue(ref(db, `pondsLatest/${pond.id}`), (snap) =>
+      setLatest(snap.val())
+    );
+    const q = query(ref(db, `alerts/${pond.id}`), orderByChild('ts'), limitToLast(50));
+    const unsubAlerts = onValue(q, (snap) => {
+      let n = 0;
+      snap.forEach((child) => {
+        if (child.val() && child.val().read === false) n += 1;
+      });
+      setUnread(n);
+    });
+    return () => {
+      unsubLatest();
+      unsubAlerts();
+    };
   }, [pond.id]);
 
   const online = !!latest?.online;
@@ -24,7 +38,14 @@ function PondCard({ pond, onPress }) {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.cardHead}>
-        <Text style={styles.cardName}>{pond.name}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+          <Text style={styles.cardName} numberOfLines={1}>{pond.name}</Text>
+          {unread > 0 && (
+            <View style={styles.alertBadge}>
+              <Text style={styles.alertBadgeText}>{unread > 99 ? '99+' : unread}</Text>
+            </View>
+          )}
+        </View>
         <View style={[styles.badge, { backgroundColor: online ? '#d4f3df' : '#eee' }]}>
           <Text style={{ color: online ? '#1b7f45' : '#777', fontWeight: '600' }}>
             {online ? '● Online' : '○ Offline'}
@@ -107,7 +128,16 @@ export default function HomeScreen() {
           contentContainerStyle={{ padding: 16 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListHeaderComponent={
-            <Text style={styles.hello}>Xin chào, {user?.displayName || user?.email}</Text>
+            <View>
+              <Text style={styles.hello}>Xin chào, {user?.displayName || user?.email}</Text>
+              {ponds.length > 0 && (
+                <View style={styles.summaryBar}>
+                  <Text style={styles.summaryText}>
+                    {ponds.filter((p) => p.latest?.online).length} ao online / tổng {ponds.length} ao
+                  </Text>
+                </View>
+              )}
+            </View>
           }
           ListEmptyComponent={
             <View style={{ alignItems: 'center', marginTop: 40 }}>
@@ -135,6 +165,25 @@ const styles = StyleSheet.create({
   cardHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardName: { fontSize: 18, fontWeight: '700', color: '#0b3d5c' },
   badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
+  alertBadge: {
+    backgroundColor: '#c0392b',
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    paddingHorizontal: 5,
+  },
+  alertBadgeText: { color: '#fff', fontSize: 11, fontWeight: '800' },
+  summaryBar: {
+    backgroundColor: '#e8f1f6',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+  },
+  summaryText: { color: '#0b3d5c', fontWeight: '600', textAlign: 'center' },
   muted: { color: '#778', marginTop: 4, textAlign: 'center' },
   metrics: { flexDirection: 'row', marginTop: 14 },
   metric: { flex: 1, alignItems: 'center' },

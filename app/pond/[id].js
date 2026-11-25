@@ -3,8 +3,8 @@ import {
   ActivityIndicator, Alert, ScrollView, StyleSheet, Switch, Text,
   TouchableOpacity, View, useWindowDimensions,
 } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
-import { ref, onValue } from 'firebase/database';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { ref, onValue, query, orderByChild, limitToLast } from 'firebase/database';
 import { LineChart } from 'react-native-gifted-charts';
 import { db } from '../../src/firebase';
 import { api } from '../../src/api';
@@ -23,16 +23,30 @@ const DEVICES = [
 
 export default function PondDetail() {
   const { id, name } = useLocalSearchParams();
+  const router = useRouter();
   const { width } = useWindowDimensions();
 
   const [latest, setLatest] = useState(null);
   const [history, setHistory] = useState(null);
   const [metric, setMetric] = useState('temp');
   const [busyKey, setBusyKey] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Realtime số liệu + trạng thái thiết bị
   useEffect(() => {
     const unsub = onValue(ref(db, `pondsLatest/${id}`), (snap) => setLatest(snap.val()));
+    return unsub;
+  }, [id]);
+
+  useEffect(() => {
+    const q = query(ref(db, `alerts/${id}`), orderByChild('ts'), limitToLast(50));
+    const unsub = onValue(q, (snap) => {
+      let n = 0;
+      snap.forEach((child) => {
+        if (child.val() && child.val().read === false) n += 1;
+      });
+      setUnreadCount(n);
+    });
     return unsub;
   }, [id]);
 
@@ -80,6 +94,23 @@ export default function PondDetail() {
           {online ? '● Thiết bị online' : '○ Thiết bị offline'}
         </Text>
         {latest?.deviceAlert && <Text style={styles.warn}>⚠ Có cảnh báo</Text>}
+      </View>
+
+      <View style={styles.actionRow}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => router.push({ pathname: '/alerts/[id]', params: { id, name } })}
+        >
+          <Text style={styles.actionText}>
+            🔔 Cảnh báo{unreadCount > 0 ? ` (${unreadCount})` : ''}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => router.push({ pathname: '/thresholds/[id]', params: { id, name } })}
+        >
+          <Text style={styles.actionText}>⚙️ Ngưỡng</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Số liệu realtime */}
@@ -180,6 +211,17 @@ const styles = StyleSheet.create({
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   badge: { fontWeight: '700', fontSize: 15 },
   warn: { color: '#c0392b', fontWeight: '700' },
+  actionRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  actionBtn: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#cde0ea',
+  },
+  actionText: { color: '#0b3d5c', fontWeight: '700', fontSize: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 12 },
   tile: {
     width: '48%', backgroundColor: '#fff', borderRadius: 12, padding: 14,
