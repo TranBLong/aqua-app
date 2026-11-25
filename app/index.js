@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet,
+  ActivityIndicator, FlatList, RefreshControl, StyleSheet,
   Text, TouchableOpacity, View,
 } from 'react-native';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
@@ -72,7 +72,7 @@ const Metric = ({ label, value }) => (
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [ponds, setPonds] = useState(null);
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -96,12 +96,6 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-  const confirmLogout = () =>
-    Alert.alert('Đăng xuất', 'Bạn muốn đăng xuất?', [
-      { text: 'Hủy', style: 'cancel' },
-      { text: 'Đăng xuất', style: 'destructive', onPress: logout },
-    ]);
-
   return (
     <View style={styles.container}>
       <Stack.Screen
@@ -111,8 +105,8 @@ export default function HomeScreen() {
               <TouchableOpacity onPress={() => router.push('/add-pond')}>
                 <Text style={styles.headerBtn}>＋ Thêm</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={confirmLogout}>
-                <Text style={styles.headerBtn}>Thoát</Text>
+              <TouchableOpacity onPress={() => router.push('/profile')}>
+                <Text style={styles.headerBtn}>👤</Text>
               </TouchableOpacity>
             </View>
           ),

@@ -3,7 +3,7 @@ import {
   ActivityIndicator, Alert, ScrollView, StyleSheet, Switch, Text,
   TouchableOpacity, View, useWindowDimensions,
 } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ref, onValue, query, orderByChild, limitToLast } from 'firebase/database';
 import { LineChart } from 'react-native-gifted-charts';
 import { db } from '../../src/firebase';
@@ -31,6 +31,18 @@ export default function PondDetail() {
   const [metric, setMetric] = useState('temp');
   const [busyKey, setBusyKey] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pondName, setPondName] = useState(name || 'Chi tiết ao');
+
+  const loadPond = useCallback(async () => {
+    try {
+      const data = await api(`/ponds/${id}`);
+      if (data?.name) setPondName(data.name);
+    } catch (_) {
+      // Giữ tên hiện tại nếu không tải lại được dữ liệu ao.
+    }
+  }, [id]);
+
+  useFocusEffect(useCallback(() => { loadPond(); }, [loadPond]));
 
   // Realtime số liệu + trạng thái thiết bị
   useEffect(() => {
@@ -86,7 +98,7 @@ export default function PondDetail() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 16 }}>
-      <Stack.Screen options={{ title: name || 'Chi tiết ao' }} />
+      <Stack.Screen options={{ title: pondName }} />
 
       {/* Trạng thái */}
       <View style={styles.rowBetween}>
@@ -119,6 +131,12 @@ export default function PondDetail() {
         >
           <Text style={styles.actionText}>📅 Lịch cho ăn</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => router.push({ pathname: '/edit-pond/[id]', params: { id } })}
+        >
+          <Text style={styles.actionText}>✏️ Sửa ao</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Số liệu realtime */}
@@ -141,7 +159,7 @@ export default function PondDetail() {
       {/* Biểu đồ */}
       <View style={styles.panel}>
         <View style={styles.rowBetween}>
-          <Text style={styles.panelTitle}>Biểu đồ {m.label} (24h gần nhất)</Text>
+          <Text style={styles.panelTitle}>Biểu đồ {m.label} (100 điểm gần nhất)</Text>
           <TouchableOpacity onPress={loadHistory}><Text style={styles.link}>Làm mới</Text></TouchableOpacity>
         </View>
         {history === null ? (
@@ -172,6 +190,18 @@ export default function PondDetail() {
           />
         )}
       </View>
+
+      <TouchableOpacity
+        style={styles.historyLink}
+        onPress={() =>
+          router.push({
+            pathname: '/history/[id]',
+            params: { id, name: pondName || name },
+          })
+        }
+      >
+        <Text style={styles.historyLinkText}>📈 Xem lịch sử chi tiết</Text>
+      </TouchableOpacity>
 
       {/* Điều khiển */}
       <View style={styles.panel}>
@@ -241,6 +271,16 @@ const styles = StyleSheet.create({
   panel: { backgroundColor: '#fff', borderRadius: 14, padding: 16, marginTop: 16 },
   panelTitle: { fontWeight: '700', fontSize: 16, color: '#0b3d5c', marginBottom: 10 },
   link: { color: '#0b6e99', fontWeight: '600' },
+  historyLink: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#cde0ea',
+  },
+  historyLinkText: { color: '#0b6e99', fontWeight: '700', fontSize: 15 },
   empty: { color: '#778', paddingVertical: 24, textAlign: 'center' },
   ctrlRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
   ctrlLabel: { fontSize: 16, color: '#223' },

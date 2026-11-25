@@ -5,6 +5,9 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   signOut,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
 } from 'firebase/auth';
 import { auth } from './firebase';
 
@@ -31,8 +34,16 @@ export function AuthProvider({ children }) {
 
   const logout = () => signOut(auth);
 
+  const changePassword = async (currentPassword, newPassword) => {
+    const u = auth.currentUser;
+    if (!u || !u.email) throw new Error('Chưa đăng nhập');
+    const credential = EmailAuthProvider.credential(u.email, currentPassword);
+    await reauthenticateWithCredential(u, credential);
+    await updatePassword(u, newPassword);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, changePassword }}>
       {children}
     </AuthContext.Provider>
   );
@@ -49,7 +60,8 @@ export function authErrorMessage(e) {
     case 'auth/wrong-password':
     case 'auth/user-not-found': return 'Email hoặc mật khẩu không đúng';
     case 'auth/email-already-in-use': return 'Email này đã được đăng ký';
-    case 'auth/weak-password': return 'Mật khẩu tối thiểu 6 ký tự';
+    case 'auth/weak-password': return 'Mật khẩu mới quá yếu (tối thiểu 6 ký tự)';
+    case 'auth/requires-recent-login': return 'Phiên đăng nhập đã cũ, hãy đăng xuất rồi đăng nhập lại rồi thử đổi mật khẩu';
     case 'auth/network-request-failed': return 'Lỗi mạng, kiểm tra kết nối';
     case 'auth/too-many-requests': return 'Thử quá nhiều lần, hãy đợi một lúc';
     default: return e.message || 'Có lỗi xảy ra';
