@@ -1,0 +1,8 @@
+{
+  "expo": {
+    "name": "aqua-app",
+    "slug": "aqua-app",
+    "scheme": "aquafarm",
+    "plugins": ["expo-router"]
+  }
+}

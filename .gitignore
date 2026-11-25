@@ -1,5 +1,30 @@
+# dependencies
 node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# native (nếu dùng Expo Go / managed workflow)
+android/
+ios/
+
+# Metro & bundle cache
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# env & local secrets
 .env
-serviceAccountKey.json
-*.log
-google-services-android.json
+.env*.local
+
+# logs & OS
+npm-debug.*
+yarn-error.*
+.DS_Store
+Thumbs.db
