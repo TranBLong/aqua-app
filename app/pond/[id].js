@@ -8,6 +8,8 @@ import { ref, onValue, query, orderByChild, limitToLast } from 'firebase/databas
 import { LineChart } from 'react-native-gifted-charts';
 import { db } from '../../src/firebase';
 import { api } from '../../src/api';
+import { colors } from '../../src/theme';
+import { Card, SectionTitle, ErrorBanner } from '../../src/ui';
 
 const METRICS = [
   { key: 'temp', label: 'Nhiệt độ', unit: '°C', color: '#e67e22' },
@@ -32,6 +34,8 @@ export default function PondDetail() {
   const [busyKey, setBusyKey] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [pondName, setPondName] = useState(name || 'Chi tiết ao');
+  const [thresholds, setThresholds] = useState(null);
+  const [historyError, setHistoryError] = useState('');
 
   const loadPond = useCallback(async () => {
     try {
@@ -43,6 +47,12 @@ export default function PondDetail() {
   }, [id]);
 
   useFocusEffect(useCallback(() => { loadPond(); }, [loadPond]));
+
+  useEffect(() => {
+    api(`/ponds/${id}/thresholds`)
+      .then(setThresholds)
+      .catch(() => setThresholds(null));
+  }, [id]);
 
   // Realtime số liệu + trạng thái thiết bị
   useEffect(() => {
@@ -67,8 +77,10 @@ export default function PondDetail() {
     try {
       const res = await api(`/ponds/${id}/history?interval=raw&limit=100`);
       setHistory(res.data);
+      setHistoryError('');
     } catch (e) {
       setHistory([]);
+      setHistoryError(e.message);
     }
   }, [id]);
 
@@ -95,6 +107,14 @@ export default function PondDetail() {
     .filter((r) => typeof r[metric] === 'number')
     .map((r) => ({ value: r[metric] }));
   const cur = latest?.[metric];
+  const valueColor = (key, val) => {
+    if (typeof val !== 'number' || !thresholds) return colors.primary;
+    if (key === 'temp' && val > thresholds.tempMax) return colors.error;
+    if (key === 'ph' && (val < thresholds.phMin || val > thresholds.phMax)) return colors.error;
+    if (key === 'do' && val < thresholds.doMin) return colors.error;
+    if (key === 'turbidity' && val > thresholds.turbidityMax) return colors.error;
+    return colors.primary;
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 16 }}>
@@ -140,6 +160,7 @@ export default function PondDetail() {
       </View>
 
       {/* Số liệu realtime */}
+      <ErrorBanner message={historyError} />
       <View style={styles.grid}>
         {METRICS.map((x) => (
           <TouchableOpacity
@@ -147,7 +168,7 @@ export default function PondDetail() {
             style={[styles.tile, metric === x.key && { borderColor: x.color, borderWidth: 2 }]}
             onPress={() => setMetric(x.key)}
           >
-            <Text style={[styles.tileValue, { color: x.color }]}>
+            <Text style={[styles.tileValue, { color: valueColor(x.key, latest?.[x.key]) }]}>
               {typeof latest?.[x.key] === 'number' ? latest[x.key].toFixed(x.key === 'ph' || x.key === 'do' ? 2 : 1) : '--'}
               <Text style={styles.tileUnit}> {x.unit}</Text>
             </Text>

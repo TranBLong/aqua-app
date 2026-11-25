@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { api } from '../../src/api';
+import { Card, PrimaryButton, DangerButton, ErrorBanner, SectionTitle } from '../../src/ui';
 
 const DAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 const MAX_SCHEDULES = 20;

@@ -2,16 +2,18 @@ import React, { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AuthProvider, useAuth } from '../src/AuthContext';
+import { colors } from '../src/theme';
 
 function Splash() {
   return (
-    <View style={styles.splash}>
+    <LinearGradient colors={[colors.primary, colors.primaryDark]} style={styles.splash}>
       <Text style={styles.logo}>🐟</Text>
       <Text style={styles.title}>AquaFarm</Text>
       <Text style={styles.sub}>Trang trại thủy sản thông minh</Text>
       <ActivityIndicator color="#fff" style={{ marginTop: 24 }} />
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -32,7 +34,7 @@ function Gate() {
     <>
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: '#0b6e99' },
+          headerStyle: { backgroundColor: colors.primary },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: '700' },
         }}
@@ -68,8 +70,8 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  splash: { flex: 1, backgroundColor: '#0b6e99', alignItems: 'center', justifyContent: 'center' },
+  splash: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   logo: { fontSize: 64 },
   title: { color: '#fff', fontSize: 32, fontWeight: '800', marginTop: 8 },
-  sub: { color: '#cfe9f5', marginTop: 4 },
+  sub: { color: colors.splashSub, marginTop: 4 },
 });

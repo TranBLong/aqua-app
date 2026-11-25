@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { api } from '../../src/api';
+import { DangerButton, PrimaryButton, ScreenLoading, ErrorBanner } from '../../src/ui';
 
 export default function EditPondScreen() {
   const { id } = useLocalSearchParams();
@@ -92,16 +93,12 @@ export default function EditPondScreen() {
   };
 
   if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0b6e99" />
-      </View>
-    );
+    return <ScreenLoading label="Đang tải thông tin ao…" />;
   }
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-      {!!error && <Text style={styles.error}>{error}</Text>}
+      <ErrorBanner message={error} />
 
       <Text style={styles.label}>Tên ao *</Text>
       <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Ao số 1" maxLength={60} />
@@ -119,13 +116,8 @@ export default function EditPondScreen() {
       <Text style={styles.label}>Diện tích (m²)</Text>
       <TextInput style={styles.input} value={area} onChangeText={setArea} keyboardType="numeric" placeholder="500" />
 
-      <TouchableOpacity style={[styles.btn, busy && { opacity: 0.6 }]} onPress={submit} disabled={busy}>
-        {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Lưu thay đổi</Text>}
-      </TouchableOpacity>
-
-      <TouchableOpacity style={[styles.btnDanger, busy && { opacity: 0.6 }]} onPress={confirmDelete} disabled={busy}>
-        <Text style={styles.btnText}>Xóa ao</Text>
-      </TouchableOpacity>
+      <PrimaryButton title="Lưu thay đổi" busy={busy} onPress={submit} />
+      <DangerButton title="Xóa ao" busy={busy} onPress={confirmDelete} style={{ marginTop: 12 }} />
     </ScrollView>
   );
 }

@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { api } from '../../src/api';
+import { Badge, Card, EmptyState, ErrorBanner, ScreenLoading } from '../../src/ui';
+import { colors } from '../../src/theme';
 
 const TYPE_ICON = {
   ph_low: '🧪',
@@ -119,7 +121,7 @@ export default function AlertsScreen() {
       </View>
 
       {alerts === null ? (
-        <ActivityIndicator size="large" color="#0b6e99" style={{ marginTop: 40 }} />
+        <ScreenLoading label="Đang tải cảnh báo…" />
       ) : (
         <FlatList
           data={filtered}
@@ -127,11 +129,11 @@ export default function AlertsScreen() {
           contentContainerStyle={{ padding: 16, paddingTop: 8 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={
-            <View style={{ alignItems: 'center', marginTop: 40 }}>
-              {!!error && <Text style={styles.error}>{error}</Text>}
-              <Text style={styles.muted}>
-                {filter === 'unread' ? 'Không còn cảnh báo chưa đọc.' : 'Chưa có cảnh báo nào.'}
-              </Text>
+            <View>
+              <ErrorBanner message={error} />
+              <EmptyState
+                title={filter === 'unread' ? 'Không còn cảnh báo chưa đọc.' : 'Chưa có cảnh báo nào.'}
+              />
             </View>
           }
           renderItem={({ item }) => {

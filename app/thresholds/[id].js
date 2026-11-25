@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { api } from '../../src/api';
+import { Card, PrimaryButton, ScreenLoading, ErrorBanner } from '../../src/ui';
 
 const DEFAULTS = {
   phMin: 6.5,
@@ -130,12 +131,12 @@ export default function ThresholdsScreen() {
       <Stack.Screen options={{ title: name ? `Ngưỡng · ${name}` : 'Ngưỡng cảnh báo' }} />
 
       {form === null ? (
-        <ActivityIndicator size="large" color="#0b6e99" style={{ marginTop: 40 }} />
+        <ScreenLoading label="Đang tải ngưỡng cảnh báo…" />
       ) : (
         <>
-          {!!error && <Text style={styles.error}>{error}</Text>}
+          <ErrorBanner message={error} />
 
-          <View style={styles.card}>
+          <Card>
             {FIELDS.map((f) => (
               <View key={f.key} style={styles.field}>
                 <Text style={styles.label}>{f.label}</Text>
@@ -150,20 +151,13 @@ export default function ThresholdsScreen() {
               </View>
             ))}
 
-            {!!fieldError && <Text style={styles.error}>{fieldError}</Text>}
-
-            <TouchableOpacity
-              style={[styles.btn, saving && { opacity: 0.6 }]}
-              onPress={save}
-              disabled={saving}
-            >
-              <Text style={styles.btnText}>{saving ? 'Đang lưu...' : 'Lưu ngưỡng'}</Text>
-            </TouchableOpacity>
+            <ErrorBanner message={fieldError} />
+            <PrimaryButton title="Lưu ngưỡng" busy={saving} onPress={save} />
 
             <TouchableOpacity style={styles.linkBtn} onPress={restoreDefaults}>
               <Text style={styles.linkText}>Khôi phục mặc định</Text>
             </TouchableOpacity>
-          </View>
+          </Card>
 
           <Text style={styles.note}>
             Ngưỡng này chỉ ảnh hưởng cảnh báo trên server. Ngưỡng tự động bật/tắt thiết bị nằm trong firmware.

@@ -10,6 +10,8 @@ import * as Sharing from 'expo-sharing';
 import { api } from '../../src/api';
 import { auth } from '../../src/firebase';
 import { API_URL } from '../../src/config';
+import { colors } from '../../src/theme';
+import { ErrorBanner, ScreenLoading, SectionTitle } from '../../src/ui';
 
 const METRICS = [
   { key: 'temp', label: 'Nhiệt độ', unit: '°C', color: '#e67e22' },
@@ -246,13 +248,10 @@ export default function HistoryScreen() {
               {exporting ? <ActivityIndicator color="#fff" /> : <Text style={styles.exportText}>📥 Xuất CSV</Text>}
             </TouchableOpacity>
 
-            {!!error && <Text style={styles.error}>{error}</Text>}
+            <ErrorBanner message={error} />
 
             {data === null && (
-              <View style={styles.loadingBox}>
-                <ActivityIndicator size="large" color="#0b6e99" />
-                <Text style={styles.muted}>Đang tải lịch sử…</Text>
-              </View>
+              <ScreenLoading label="Đang tải lịch sử…" />
             )}
 
             {data !== null && (

@@ -8,6 +8,7 @@ import { updateProfile } from 'firebase/auth';
 import { api } from '../src/api';
 import { useAuth, authErrorMessage } from '../src/AuthContext';
 import { auth } from '../src/firebase';
+import { Card, DangerButton, PrimaryButton, ScreenLoading, ErrorBanner, SectionTitle } from '../src/ui';
 
 export default function ProfileScreen() {
   const { user, logout, changePassword } = useAuth();
@@ -95,17 +96,13 @@ export default function ProfileScreen() {
   };
 
   if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0b6e99" />
-      </View>
-    );
+    return <ScreenLoading label="Đang tải hồ sơ…" />;
   }
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Hồ sơ</Text>
+      <Card>
+        <SectionTitle>Hồ sơ</SectionTitle>
 
         <Text style={styles.label}>Email</Text>
         <TextInput style={[styles.input, styles.readonly]} value={user?.email || ''} editable={false} />
@@ -129,16 +126,14 @@ export default function ProfileScreen() {
           maxLength={20}
         />
 
-        {!!error && <Text style={styles.error}>{error}</Text>}
+        <ErrorBanner message={error} />
         {!!okMsg && <Text style={styles.ok}>{okMsg}</Text>}
 
-        <TouchableOpacity style={[styles.btn, saving && { opacity: 0.6 }]} onPress={saveProfile} disabled={saving}>
-          {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Lưu hồ sơ</Text>}
-        </TouchableOpacity>
-      </View>
+        <PrimaryButton title="Lưu hồ sơ" busy={saving} onPress={saveProfile} />
+      </Card>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Đổi mật khẩu</Text>
+      <Card>
+        <SectionTitle>Đổi mật khẩu</SectionTitle>
 
         <Text style={styles.label}>Mật khẩu hiện tại</Text>
         <TextInput style={styles.input} value={currentPw} onChangeText={setCurrentPw} secureTextEntry placeholder="••••••" />
@@ -149,17 +144,13 @@ export default function ProfileScreen() {
         <Text style={styles.label}>Nhập lại mật khẩu mới</Text>
         <TextInput style={styles.input} value={confirmPw} onChangeText={setConfirmPw} secureTextEntry placeholder="••••••" />
 
-        {!!pwError && <Text style={styles.error}>{pwError}</Text>}
+        <ErrorBanner message={pwError} />
         {!!pwOk && <Text style={styles.ok}>{pwOk}</Text>}
 
-        <TouchableOpacity style={[styles.btn, pwBusy && { opacity: 0.6 }]} onPress={onChangePassword} disabled={pwBusy}>
-          {pwBusy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Đổi mật khẩu</Text>}
-        </TouchableOpacity>
-      </View>
+        <PrimaryButton title="Đổi mật khẩu" busy={pwBusy} onPress={onChangePassword} />
+      </Card>
 
-      <TouchableOpacity style={styles.btnDanger} onPress={confirmLogout}>
-        <Text style={styles.btnText}>Đăng xuất</Text>
-      </TouchableOpacity>
+      <DangerButton title="Đăng xuất" onPress={confirmLogout} />
     </ScrollView>
   );
 }

@@ -8,6 +8,8 @@ import { ref, onValue, query, orderByChild, limitToLast } from 'firebase/databas
 import { db } from '../src/firebase';
 import { api } from '../src/api';
 import { useAuth } from '../src/AuthContext';
+import { colors } from '../src/theme';
+import { Badge, EmptyState, ErrorBanner, ScreenLoading } from '../src/ui';
 
 // Một thẻ ao: đăng ký lắng nghe realtime pondsLatest/{id}
 function PondCard({ pond, onPress }) {
@@ -34,9 +36,10 @@ function PondCard({ pond, onPress }) {
 
   const online = !!latest?.online;
   const fmt = (v, d = 1) => (typeof v === 'number' ? v.toFixed(d) : '--');
+  const borderColor = unread > 0 ? colors.error : online ? colors.success : '#ccc';
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
+    <TouchableOpacity style={[styles.card, { borderWidth: 2, borderColor }]} onPress={onPress}>
       <View style={styles.cardHead}>
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
           <Text style={styles.cardName} numberOfLines={1}>{pond.name}</Text>
@@ -46,11 +49,7 @@ function PondCard({ pond, onPress }) {
             </View>
           )}
         </View>
-        <View style={[styles.badge, { backgroundColor: online ? '#d4f3df' : '#eee' }]}>
-          <Text style={{ color: online ? '#1b7f45' : '#777', fontWeight: '600' }}>
-            {online ? '● Online' : '○ Offline'}
-          </Text>
-        </View>
+        <Badge tone={online ? 'online' : 'offline'} label={online ? '● Online' : '○ Offline'} />
       </View>
       {!!pond.species && <Text style={styles.muted}>{pond.species}{pond.location ? ` · ${pond.location}` : ''}</Text>}
       <View style={styles.metrics}>
@@ -114,7 +113,7 @@ export default function HomeScreen() {
       />
 
       {ponds === null ? (
-        <ActivityIndicator size="large" color="#0b6e99" style={{ marginTop: 40 }} />
+        <ScreenLoading label="Đang tải danh sách ao…" />
       ) : (
         <FlatList
           data={ponds}
@@ -124,6 +123,7 @@ export default function HomeScreen() {
           ListHeaderComponent={
             <View>
               <Text style={styles.hello}>Xin chào, {user?.displayName || user?.email}</Text>
+              {!!error && <ErrorBanner message={error} />}
               {ponds.length > 0 && (
                 <View style={styles.summaryBar}>
                   <Text style={styles.summaryText}>
@@ -134,11 +134,10 @@ export default function HomeScreen() {
             </View>
           }
           ListEmptyComponent={
-            <View style={{ alignItems: 'center', marginTop: 40 }}>
-              {!!error && <Text style={styles.error}>{error}</Text>}
-              <Text style={styles.muted}>Chưa có ao nào. Bấm "＋ Thêm" để tạo ao đầu tiên.</Text>
-              <Text style={[styles.muted, { marginTop: 6 }]}>Mẹo: pondId phải trùng POND_ID trong firmware (vd pond1).</Text>
-            </View>
+            <EmptyState
+              title={'Chưa có ao nào. Bấm "＋ Thêm" để tạo ao đầu tiên.'}
+              hint="Mẹo: pondId phải trùng POND_ID trong firmware (vd pond1)."
+            />
           }
           renderItem={({ item }) => (
             <PondCard pond={item} onPress={() => router.push({ pathname: '/pond/[id]', params: { id: item.id, name: item.name } })} />

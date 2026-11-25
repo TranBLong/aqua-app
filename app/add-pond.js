@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { api } from '../src/api';
+import { PrimaryButton, ErrorBanner } from '../src/ui';
 
 export default function AddPondScreen() {
   const router = useRouter();
@@ -52,11 +53,8 @@ export default function AddPondScreen() {
       <Text style={styles.label}>Diện tích (m²)</Text>
       <TextInput style={styles.input} value={area} onChangeText={setArea} keyboardType="numeric" placeholder="500" />
 
-      {!!error && <Text style={styles.error}>{error}</Text>}
-
-      <TouchableOpacity style={[styles.btn, busy && { opacity: 0.6 }]} onPress={submit} disabled={busy}>
-        {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Tạo ao</Text>}
-      </TouchableOpacity>
+      <ErrorBanner message={error} />
+      <PrimaryButton title="Tạo ao" busy={busy} onPress={submit} />
     </ScrollView>
   );
 }

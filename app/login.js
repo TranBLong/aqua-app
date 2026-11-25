@@ -4,6 +4,9 @@ import {
   StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { useAuth, authErrorMessage } from '../src/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors } from '../src/theme';
+import { Card, PrimaryButton, ErrorBanner } from '../src/ui';
 
 export default function LoginScreen() {
   const { login, register } = useAuth();
@@ -31,55 +34,60 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.logo}>🐟</Text>
-        <Text style={styles.title}>AquaFarm</Text>
-        <Text style={styles.sub}>{isRegister ? 'Tạo tài khoản mới' : 'Đăng nhập để tiếp tục'}</Text>
+    <LinearGradient colors={[colors.primary, '#064a6b']} style={{ flex: 1 }}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <Text style={styles.logo}>🐟</Text>
+          <Text style={styles.title}>AquaFarm</Text>
+          <Text style={styles.sub}>{isRegister ? 'Tạo tài khoản mới' : 'Đăng nhập để tiếp tục'}</Text>
 
-        {isRegister && (
-          <TextInput style={styles.input} placeholder="Tên hiển thị" value={name} onChangeText={setName} />
-        )}
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Mật khẩu"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          onSubmitEditing={submit}
-        />
+          <Card style={styles.formCard}>
+            {isRegister && (
+              <TextInput style={styles.input} placeholder="Tên hiển thị" value={name} onChangeText={setName} />
+            )}
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Mật khẩu"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              onSubmitEditing={submit}
+            />
 
-        {!!error && <Text style={styles.error}>{error}</Text>}
+            <ErrorBanner message={error} />
 
-        <TouchableOpacity style={[styles.btn, busy && { opacity: 0.6 }]} onPress={submit} disabled={busy}>
-          {busy ? <ActivityIndicator color="#fff" /> : (
-            <Text style={styles.btnText}>{isRegister ? 'Đăng ký' : 'Đăng nhập'}</Text>
-          )}
-        </TouchableOpacity>
+            <PrimaryButton
+              title={isRegister ? 'Đăng ký' : 'Đăng nhập'}
+              busy={busy}
+              onPress={submit}
+            />
 
-        <TouchableOpacity onPress={() => { setIsRegister(!isRegister); setError(''); }}>
-          <Text style={styles.link}>
-            {isRegister ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Đăng ký'}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <TouchableOpacity onPress={() => { setIsRegister(!isRegister); setError(''); }}>
+              <Text style={styles.link}>
+                {isRegister ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Đăng ký'}
+              </Text>
+            </TouchableOpacity>
+          </Card>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, justifyContent: 'center', padding: 24, backgroundColor: '#f2f8fb' },
+  container: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   logo: { fontSize: 56, textAlign: 'center' },
-  title: { fontSize: 30, fontWeight: '800', textAlign: 'center', color: '#0b6e99' },
-  sub: { textAlign: 'center', color: '#667', marginBottom: 24, marginTop: 4 },
+  title: { fontSize: 32, fontWeight: '800', textAlign: 'center', color: '#fff' },
+  sub: { textAlign: 'center', color: '#dcecf4', marginBottom: 24, marginTop: 4 },
+  formCard: { marginTop: 8 },
   input: {
     backgroundColor: '#fff', borderRadius: 10, padding: 14, marginBottom: 12,
     borderWidth: 1, borderColor: '#d5e3ea', fontSize: 16,
